@@ -45,7 +45,7 @@ public class ModuleLayout : IEnumerable<SimonButton> {
     /// <returns>
     /// The positions of the flashing buttons in order.
     /// </returns>
-    public int[] flashPositions { get { return flashes.Select(f => f.flashingPosition).ToArray(); } }
+    public ButtonPosition[] flashPositions { get { return flashes.Select(f => f.flashingPosition).ToArray(); } }
     /// <returns>
     /// The types of the flashing buttons in order.
     /// </returns>

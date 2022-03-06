@@ -29,7 +29,7 @@ public class SimonScramblesButton : SimonButton {
     }
     IEnumerable<SimonColor> CalculateSolution(Flash thisFlash)
     {
-        Log("Indexing into color table with color {0} and positions {1} {2}.", this.color, thisFlash.flashPosition, thisFlash.flashPosition + 5);
+        Log("Indexing into color table with color {0} and positions {1} {2}.", this.color, thisFlash.positionInSequence, thisFlash.positionInSequence + 5);
         yield return table[this.color][thisFlash.positionInSequence];
         yield return table[this.color][thisFlash.positionInSequence + 5];
 

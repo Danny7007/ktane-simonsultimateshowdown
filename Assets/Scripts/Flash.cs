@@ -5,10 +5,10 @@ public struct Flash {
 
     public SimonColor color { get; private set; }
 	public SimonModType type { get; private set; }
-	public int flashingPosition { get; private set; }
+	public ButtonPosition flashingPosition { get; private set; }
     public int positionInSequence { get; private set; }
 
-    public Flash(SimonColor color, SimonModType type, int flashingPosition, int positionInSequence)
+    public Flash(SimonColor color, SimonModType type, ButtonPosition flashingPosition, int positionInSequence)
     {
         this.color = color;
         this.type = type;
