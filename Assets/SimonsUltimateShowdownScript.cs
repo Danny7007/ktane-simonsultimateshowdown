@@ -26,12 +26,12 @@ public class SimonsUltimateShowdownScript : MonoBehaviour
         */
 
         //Button.OnInteract += delegate () { ButtonPress(); return false; };
-
+        
     }
 
     void Start()
     {
-
+        
     }
 
     void Update()
