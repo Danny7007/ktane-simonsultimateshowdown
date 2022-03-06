@@ -13,7 +13,6 @@ public abstract class SimonButton : MonoBehaviour {
 	/// The prefab which will be spawned by the module.
 	/// </summary>
 	public GameObject prefab;
-
 	/// <summary>
 	/// The selectable component of the button.
 	/// </summary>
@@ -27,13 +26,20 @@ public abstract class SimonButton : MonoBehaviour {
 	/// </summary>
 	public Light[] lights = new Light[0];
 	/// <summary>
-	/// The layout of buttons on the module and their flashes.
+	/// Objects which must be enabled by colorblind mode.
 	/// </summary>
-	public ModuleLayout modLayout { private get; set; }
+	public GameObject[] colorBlindObjects;
+
+
+
+    /// <summary>
+    /// The layout of buttons on the module and their flashes.
+    /// </summary>
+    public ModuleLayout modLayout { private get; set; }
 	/// <summary>
-	/// The color of the button
-	/// </summary>
-	public SimonColor color { get; set; }
+    /// The color of the button
+    /// </summary>
+    public SimonColor color { get; set; }
 	/// <summary>
 	/// Information about the flashes that this button produces.
 	/// </summary>
@@ -42,6 +48,10 @@ public abstract class SimonButton : MonoBehaviour {
 	/// The ID of the SUS module. Used for logging.
 	/// </summary>
 	public int moduleId { private get; set; }
+	/// <summary>
+	/// The KMBombModule component on the parent module.
+	/// </summary>
+	protected KMBombModule bomb;
 	/// <summary>
 	/// The type of button that this is.
 	/// </summary>
@@ -55,33 +65,76 @@ public abstract class SimonButton : MonoBehaviour {
 	/// </summary>
 	protected abstract float flashTime { get; }
 	/// <summary>
+	/// Stores whether the module will need to recalculate its answer when a strike is recorded anywhere on the bomb.
+	/// </summary>
+	public virtual bool resetOnStrike { get { return false; } }
+	/// <summary>
 	/// The material colors associated with each color that the button can be.
 	/// </summary>
-	protected abstract Dictionary<SimonColor, Color> matColors { get; }
+	protected abstract Dictionary<SimonColor, Color32> matColors { get; }
 	/// <summary>
 	/// The light colors associated with each color that the button can be. 
 	/// </summary>
-	protected virtual Dictionary<SimonColor, Color> lightColors { get { return matColors; } }
+	protected virtual Dictionary<SimonColor, Color32> lightColors { get { return matColors; } }
 	/// <summary>
 	/// The colors that the button can be.
 	/// </summary>
 	protected SimonColor[] possibleColors { get { return matColors.Keys.ToArray(); } }
+
+	/// <summary>
+	/// A dictionary containing single-letter abbreviations for each color.
+	/// </summary>
+	public virtual Dictionary<SimonColor, char> colorAbbreviations { get
+        {
+			return new Dictionary<SimonColor, char>
+			{
+				{ SimonColor.Red, 'R' },
+				{ SimonColor.Blue, 'B' },
+				{ SimonColor.Yellow, 'Y' },
+				{ SimonColor.Orange, 'O' },
+				{ SimonColor.Magenta, 'M' },
+				{ SimonColor.Green, 'G' },
+				{ SimonColor.Pink, 'I' },
+				{ SimonColor.Lime, 'L' },
+				{ SimonColor.Cyan, 'C' },
+				{ SimonColor.White, 'W' }
+			};
+        } }
+
 	/// <summary>
 	/// Gets the solution for the <paramref name="flashPosition"/>'th flash that this button produces.
 	/// </summary>
-	/// <param name="flashPosition">The flash which this button produces.</param>
+	/// <param name="flashPosition">The index of the flash which this button produces.</param>
 	/// <returns>A series of colors paired with SpecialEventTypes. If no special event occurs, a null is returned.</returns>
-
-	public IEnumerable<Pair<SimonColor, SpecialEventType?>> GetSolution(int flashPosition)
+	public IEnumerable<Pair<SimonColor, SpecialEventType?>> GetPairedSolution(int flashPosition)
     {
-		return GetSolution(flashes[flashPosition].Value);
+		return GetPairedSolution(flashes[flashPosition].Value);
     }
 	/// <summary>
 	/// Gets the solution for the <paramref name="flash"/> given.
 	/// </summary>
 	/// <param name="flash">The flash to calculate for.</param>
 	/// <returns>A series of colors paired with SpecialEventTypes. If no special event occurs, a null is returned.</returns>
-	public abstract IEnumerable<Pair<SimonColor, SpecialEventType?>> GetSolution(Flash flash);
+	public virtual IEnumerable<Pair<SimonColor, SpecialEventType?>> GetPairedSolution(Flash flash)
+    {
+		return PopulateWithNull(GetSolution(flash));
+    }
+	/// <summary>
+	/// Gets the solution for the flash given.
+	/// </summary>
+	/// <param name="flash">The flash to calculate for.</param>
+	/// <returns>A sequence of SimonColors</returns>
+	public abstract IEnumerable<SimonColor> GetSolution(Flash flash);
+	/// <summary>
+	/// Gets the solution for the <paramref name="flashPosition"/>'th flash that this button produces.
+	/// </summary>
+	/// <param name="flashPosition">The index of the flash which this button produces.</param>
+	/// <returns>A sequence of SimonColors.</returns>
+	public virtual IEnumerable<SimonColor> GetSolution(int flashPosition)
+    {
+		return GetSolution(flashes[flashPosition].Value);
+    }
+
 	/// <summary>
 	/// Obtains the name of the audio clip to play when this button flashes and is pressed.<br></br>If null is returned, the standard button press will be played.
 	/// </summary>
@@ -96,6 +149,15 @@ public abstract class SimonButton : MonoBehaviour {
 		yield return new WaitForSeconds(flashTime);
 		foreach (Light light in lights)
 			light.enabled = false;
+    }
+	/// <summary>
+	/// Toggles the activity of each colorblind object on the button.
+	/// </summary>
+	/// <param name="state">The value to set each activity to.</param>
+	public virtual void SetColorblind(bool state)
+    {
+		foreach (GameObject obj in colorBlindObjects)
+			obj.SetActive(state);
     }
 	/// <summary>
 	/// Contains the animation that plays on this button when the module is solved.
@@ -131,12 +193,18 @@ public abstract class SimonButton : MonoBehaviour {
 
 	void Start()
     {
-        foreach (MeshRenderer rend in meshRenderers)
+		bomb = transform.GetComponentInParent<KMBombModule>();
+		OnStart();
+    }
+	protected virtual void OnStart()
+    {
+		foreach (MeshRenderer rend in meshRenderers)
 			rend.material.color = matColors[color];
 		foreach (Light light in lights)
-        {
+		{
 			light.color = lightColors[color];
 			light.range *= GetComponentInParent<SimonsUltimateShowdownScript>().transform.lossyScale.x;
-        }
-    }
+			light.enabled = false;
+		}
+	}
 }

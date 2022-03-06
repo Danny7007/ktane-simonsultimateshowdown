@@ -7,8 +7,8 @@ public class SimonScramblesButton : SimonButton {
     public override SimonModType type
     { get { return SimonModType.Simon_Scrambles; } }
 
-    protected override Dictionary<SimonColor, Color> matColors
-    { get { return new Dictionary<SimonColor, Color>()
+    protected override Dictionary<SimonColor, Color32> matColors
+    { get { return new Dictionary<SimonColor, Color32>()
             {
                 { SimonColor.Red, new Color32(0xFF, 0x00, 0x00, 0xFF)},
                 { SimonColor.Green, new Color32(0x68, 0xFF, 0x00, 0xFF)},
@@ -22,18 +22,15 @@ public class SimonScramblesButton : SimonButton {
 
     protected override float flashTime
     { get { return 0.9f; } }
-
-    public override IEnumerable<Pair<SimonColor, SpecialEventType?>> GetSolution(Flash thisFlash)
+ 
+    public override IEnumerable<SimonColor> GetSolution(Flash flash)
     {
-        return PopulateWithNull(CalculateSolution(thisFlash));
+        Log("Indexing into color table with color {0} and positions {1} {2}.", this.color, flash.positionInSequence, flash.positionInSequence + 5);
+        yield return table[color][flash.positionInSequence];
+        yield return table[color][flash.positionInSequence + 5];
     }
-    IEnumerable<SimonColor> CalculateSolution(Flash thisFlash)
-    {
-        Log("Indexing into color table with color {0} and positions {1} {2}.", this.color, thisFlash.positionInSequence, thisFlash.positionInSequence + 5);
-        yield return table[this.color][thisFlash.positionInSequence];
-        yield return table[this.color][thisFlash.positionInSequence + 5];
+    
 
-    }
 
     public override string GetFlashSound()
     {
