@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SimonScramblesButton : SimonButton {
+
+    public TextMesh cbText;
     public override SimonModType type
     { get { return SimonModType.Simon_Scrambles; } }
 
@@ -22,7 +24,21 @@ public class SimonScramblesButton : SimonButton {
 
     protected override float flashTime
     { get { return 0.9f; } }
- 
+
+    protected override Dictionary<ButtonPosition, Vector3> positionVectors
+    {
+        get
+        { return new Dictionary<ButtonPosition, Vector3>()
+            {
+            { ButtonPosition.TL, new Vector3(-0.03f, 0, 0.05f) },
+            { ButtonPosition.TR, new Vector3(0.03f, 0, 0.05f) },
+            { ButtonPosition.ML, new Vector3(-0.06f, 0, 0) },
+            { ButtonPosition.MR, new Vector3(0.06f, 0, 0) },
+            { ButtonPosition.BL, new Vector3(-0.03f, 0, -0.05f) },
+            { ButtonPosition.BR, new Vector3(0.03f, 0, -0.05f) },
+        }; }
+    }
+
     public override IEnumerable<SimonColor> GetSolution(Flash flash)
     {
         Log("Indexing into color table with color {0} and positions {1} {2}.", this.color, flash.positionInSequence, flash.positionInSequence + 5);
@@ -44,4 +60,9 @@ public class SimonScramblesButton : SimonButton {
         { SimonColor.Red, new[] { SimonColor.Blue, SimonColor.Yellow, SimonColor.Yellow, SimonColor.Green, SimonColor.Green, SimonColor.Red, SimonColor.Blue, SimonColor.Green, SimonColor.Blue, SimonColor.Yellow } },
         { SimonColor.Green, new[] { SimonColor.Red, SimonColor.Red, SimonColor.Blue, SimonColor.Blue, SimonColor.Yellow, SimonColor.Green, SimonColor.Red, SimonColor.Red, SimonColor.Green, SimonColor.Blue } }
     };
+    protected override void OnStart()
+    {
+        cbText.text = color.ToString().Substring(0,1);
+        base.OnStart();
+    }
 }

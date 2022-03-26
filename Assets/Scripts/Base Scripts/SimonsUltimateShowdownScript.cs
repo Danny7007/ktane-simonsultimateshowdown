@@ -12,22 +12,43 @@ public class SimonsUltimateShowdownScript : MonoBehaviour
     public KMBombInfo Bomb;
     public KMAudio Audio;
     public KMBombModule Module;
+    public KMColorblindMode Colorblind;
+
+    public GameObject[] prefabs;
+    public Transform buttonPositionParent;
+
+    private ModuleLayout layout;
+    private SimonButton[] buttons;
+    private List<Pair<SimonColor, SpecialEventType>> solution;
+    private int stage, enteredPresses;
+
+    private bool interactable = true;
 
     static int moduleIdCounter = 1;
     int moduleId;
     private bool moduleSolved;
 
+    
+
     void Awake()
     {
         moduleId = moduleIdCounter++;
-        /*
-        foreach (KMSelectable button in Buttons) 
-            button.OnInteract += delegate () { ButtonPress(button); return false; };
-        */
 
-        //Button.OnInteract += delegate () { ButtonPress(); return false; };
-        
+        GenerateLayout();
     }
+
+    void GenerateLayout()
+    {
+        SimonButton[] buttons = new SimonButton[6];
+        for (int i = 0; i < 6; i++)
+        {
+            buttons[i] = Instantiate(prefabs.PickRandom().GetComponent<SimonButton>(), buttonPositionParent);
+            buttons[i].position = (ButtonPosition)i;
+            buttons[i].PositionButton();
+        }
+        layout = new ModuleLayout(buttons.ToArray());
+    }
+
 
     void Start()
     {

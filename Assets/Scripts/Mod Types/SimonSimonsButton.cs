@@ -25,6 +25,18 @@ public class SimonSimonsButton : SimonButton {
             };
     }}
 
+    protected override Dictionary<ButtonPosition, Vector3> positionVectors
+    {
+        get { return new Dictionary<ButtonPosition, Vector3>()
+        {
+            { ButtonPosition.TL, new Vector3(-0.023f, 0, 0.025f) },
+            { ButtonPosition.TR, new Vector3(0.19f, 0, 0.025f)},
+            { ButtonPosition.MR, new Vector3(0.044f, 0, -0.011f) },
+            { ButtonPosition.BR, new Vector3(0.019f, 0, -0.048f) },
+            { ButtonPosition.BL, new Vector3(-0.023f, 0, -0.048f) },
+            { ButtonPosition.ML, new Vector3(-0.044f, 0, -0.011f) }
+        }; }
+    }
     public override string GetFlashSound()
     {
         return "Simons" + color.ToString();

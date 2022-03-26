@@ -10,10 +10,6 @@ using UnityEngine;
 public abstract class SimonButton : MonoBehaviour {
 
 	/// <summary>
-	/// The prefab which will be spawned by the module.
-	/// </summary>
-	public GameObject prefab;
-	/// <summary>
 	/// The selectable component of the button.
 	/// </summary>
 	public KMSelectable selectable;
@@ -40,6 +36,10 @@ public abstract class SimonButton : MonoBehaviour {
     /// The color of the button
     /// </summary>
     public SimonColor color { get; set; }
+	/// <summary>
+	/// The position of this button on the module.
+	/// </summary>
+	public ButtonPosition position { get; set; }
 	/// <summary>
 	/// Information about the flashes that this button produces.
 	/// </summary>
@@ -68,6 +68,10 @@ public abstract class SimonButton : MonoBehaviour {
 	/// Stores whether the module will need to recalculate its answer when a strike is recorded anywhere on the bomb.
 	/// </summary>
 	public virtual bool resetOnStrike { get { return false; } }
+	/// <summary>
+	/// Associates a location on the mod for each position.
+	/// </summary>
+	protected abstract Dictionary<ButtonPosition, Vector3> positionVectors { get; }
 	/// <summary>
 	/// The material colors associated with each color that the button can be.
 	/// </summary>
@@ -106,7 +110,7 @@ public abstract class SimonButton : MonoBehaviour {
 	/// </summary>
 	/// <param name="flashPosition">The index of the flash which this button produces.</param>
 	/// <returns>A series of colors paired with SpecialEventTypes. If no special event occurs, a null is returned.</returns>
-	public IEnumerable<Pair<SimonColor, SpecialEventType?>> GetPairedSolution(int flashPosition)
+	public IEnumerable<Pair<SimonColor, SpecialEventType>> GetPairedSolution(int flashPosition)
     {
 		return GetPairedSolution(flashes[flashPosition].Value);
     }
@@ -114,10 +118,10 @@ public abstract class SimonButton : MonoBehaviour {
 	/// Gets the solution for the <paramref name="flash"/> given.
 	/// </summary>
 	/// <param name="flash">The flash to calculate for.</param>
-	/// <returns>A series of colors paired with SpecialEventTypes. If no special event occurs, a null is returned.</returns>
-	public virtual IEnumerable<Pair<SimonColor, SpecialEventType?>> GetPairedSolution(Flash flash)
+	/// <returns>A series of colors paired with SpecialEventTypes. If no special event occurs, SpecialEventType.None is returned.</returns>
+	public virtual IEnumerable<Pair<SimonColor, SpecialEventType>> GetPairedSolution(Flash flash)
     {
-		return PopulateWithNull(GetSolution(flash));
+		return PopulateWithNone(GetSolution(flash));
     }
 	/// <summary>
 	/// Gets the solution for the flash given.
@@ -171,10 +175,10 @@ public abstract class SimonButton : MonoBehaviour {
 	/// </summary>
 	/// <param name="colors">The sequence to be paired, typically the solution to the flash.</param>
 	/// <returns>The sequence <paramref name="colors"/> with each color paired with a null value.</returns>
-	protected IEnumerable<Pair<SimonColor, SpecialEventType?>> PopulateWithNull(IEnumerable<SimonColor> colors)
+	protected IEnumerable<Pair<SimonColor, SpecialEventType>> PopulateWithNone(IEnumerable<SimonColor> colors)
     {
 		foreach (SimonColor color in colors)
-			yield return new Pair<SimonColor, SpecialEventType?>(color, null);
+			yield return new Pair<SimonColor, SpecialEventType>(color, SpecialEventType.None);
     }
 	/// <summary>
 	/// Sends a logging message compatible with the Logfile Analyzer to the Unity Log.
@@ -182,6 +186,12 @@ public abstract class SimonButton : MonoBehaviour {
 	protected void Log(string msg, params object[] args)
     {
 		Debug.LogFormat("[Simon's Ultimate Showdown #{0}] {1}", msg, string.Format(msg, args));
+    }
+
+	public void PositionButton()
+    {
+		transform.localPosition = positionVectors[position];
+		transform.localEulerAngles = new Vector3(0, 60 * (int)position - 30, 0);
     }
 
     public override string ToString()
